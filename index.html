@@ -67,3 +67,131 @@
   <!-- 統計表示 -->
   <div class="stats-box">
     <h2>統計</h2>
+    <p id="total"></p>
+    <p id="wins"></p>
+    <p id="losses"></p>
+    <p id="rate"></p>
+  </div>
+
+  <!-- 入力フォーム -->
+  <div class="form-box">
+    <h2>対戦結果を追加する</h2>
+    <form id="battleForm">
+
+      <!-- 日付（自動入力） -->
+      <label>日付:
+        <input type="text" id="date">
+      </label>
+
+      <!-- 結果（日付の下に移動） -->
+      <label>結果:
+        <select id="result">
+          <option value="勝ち">勝ち</option>
+          <option value="負け">負け</option>
+        </select>
+      </label>
+
+      <!-- 対戦相手のデッキ -->
+      <label>対戦相手のデッキ:
+        <input type="text" id="opponentDeck">
+      </label>
+
+      <!-- 自分のデッキ -->
+      <label>自分のデッキ:
+        <input type="text" id="myDeck">
+      </label>
+
+      <label>コメント:
+        <input type="text" id="comment">
+      </label>
+
+      <button type="button" onclick="sendRecord()">送信</button>
+    </form>
+  </div>
+
+  <div id="records"></div>
+
+  <script>
+    const url = "https://pokepoke-records-default-rtdb.firebaseio.com/records.json";
+
+    // ページ読み込み時に今日の日付を自動入力
+    window.onload = function() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById("date").value = `${yyyy}/${mm}/${dd}`;
+    };
+
+    // Firebaseへ送信
+    async function sendRecord() {
+      const record = {
+        Date: document.getElementById("date").value,
+        Result: document.getElementById("result").value,
+        OpponentDeck: document.getElementById("opponentDeck").value,
+        MyDeck: document.getElementById("myDeck").value,
+        Comment: document.getElementById("comment").value
+      };
+
+      await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(record)
+      });
+
+      alert("送信しました！");
+
+      // フォームをクリア
+      document.getElementById("battleForm").reset();
+
+      // 日付を再自動入力
+      window.onload();
+    }
+
+    // Firebaseから読み込み
+    async function loadRecords() {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      const container = document.getElementById("records");
+      container.innerHTML = "";
+
+      // 新しい順に並べる
+      const sorted = Object.values(data).sort((a, b) => {
+        return new Date(b.Date) - new Date(a.Date);
+      });
+
+      // 統計計算
+      const total = sorted.length;
+      const wins = sorted.filter(r => r.Result === "勝ち").length;
+      const losses = sorted.filter(r => r.Result === "負け").length;
+      const rate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+
+      // 統計表示
+      document.getElementById("total").innerText = `総試合数：${total}`;
+      document.getElementById("wins").innerText = `勝ち：${wins}`;
+      document.getElementById("losses").innerText = `負け：${losses}`;
+      document.getElementById("rate").innerText = `勝率：${rate}%`;
+
+      // 対戦記録表示
+      for (const r of sorted) {
+        const div = document.createElement("div");
+        div.className = "record";
+        if (r.Result === "負け") div.classList.add("lose");
+
+        div.innerHTML = `
+          <strong>${r.Date}</strong><br>
+          結果: ${r.Result}<br>
+          対戦相手のデッキ: ${r.OpponentDeck}<br>
+          自分のデッキ: ${r.MyDeck}<br>
+          コメント: ${r.Comment}
+        `;
+        container.appendChild(div);
+      }
+    }
+
+    setInterval(loadRecords, 3000);
+    loadRecords();
+  </script>
+
+</body>
+</html>
