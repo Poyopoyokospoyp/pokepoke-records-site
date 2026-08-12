@@ -4,61 +4,99 @@
   <meta charset="UTF-8">
   <title>対戦記録</title>
   <style>
-    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      padding: 20px;
+    }
 
-    h1 { margin-bottom: 10px; }
-
-    .form-box, .stats-box {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 10px;
+    h1 {
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: background 0.3s, border-left 0.3s;
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #00eaff;
+      text-shadow: 0 0 10px #00eaff;
     }
 
-    /* 編集モードの背景色（J） */
+    /* カード風ボックス */
+    .stats-box, .form-box, .streak-box {
+      background: rgba(30, 30, 30, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    /* 連勝カウンター */
+    .streak-box {
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #ff5252;
+      text-shadow: 0 0 10px #ff5252;
+    }
+
+    /* 編集モード */
     .form-box.editing {
-      background: #fff7d1;
-      border-left: 5px solid #ff9800;
+      background: rgba(255, 200, 0, 0.15);
+      border-left: 5px solid #ffcc00;
     }
 
+    /* 対戦記録カード */
     .record {
-      background: white;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border-left: 5px solid #4CAF50;
+      background: rgba(40, 40, 40, 0.9);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border-left: 6px solid #00eaff;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
       position: relative;
     }
 
     .record.lose {
-      border-left: 5px solid #F44336;
+      border-left: 6px solid #ff5252;
     }
 
+    /* ボタン */
+    button {
+      padding: 12px 18px;
+      background: #00eaff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1em;
+      box-shadow: 0 0 10px #00eaff;
+    }
+
+    button:hover {
+      background: #00bcd4;
+    }
+
+    /* 削除・編集ボタン */
     .delete-btn, .edit-btn {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: #F44336;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 5px 8px;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-weight: bold;
       cursor: pointer;
     }
 
     .edit-btn {
-      right: 70px;
+      right: 80px;
       background: #2196F3;
+      color: #fff;
     }
 
-    .edit-btn:hover {
-      background: #1976D2;
-    }
-
-    .delete-btn:hover {
-      background: #d32f2f;
+    .delete-btn {
+      background: #ff5252;
+      color: #fff;
     }
 
     label { display: block; margin-bottom: 8px; }
@@ -69,25 +107,14 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-
-    button {
-      padding: 10px 15px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background: #45a049;
-    }
   </style>
 </head>
 <body>
 
   <h1>対戦記録（リアルタイム）</h1>
+
+  <!-- 🔥 連勝カウンター -->
+  <div class="streak-box" id="streakBox">🔥 現在 0 連勝中</div>
 
   <!-- 統計表示 -->
   <div class="stats-box">
@@ -170,11 +197,9 @@
       document.getElementById("battleForm").reset();
       window.onload();
 
-      // 編集モード解除
       document.getElementById("formBox").classList.remove("editing");
 
-      // 🔥 送信直後に最新データを即時反映
-      loadRecords();
+      loadRecords(); // 即時反映
     }
 
     // 編集ボタン
@@ -188,7 +213,6 @@
       document.getElementById("myDeck").value = r.MyDeck;
       document.getElementById("comment").value = r.Comment;
 
-      // 編集モード背景色
       document.getElementById("formBox").classList.add("editing");
     }
 
@@ -197,7 +221,7 @@
       const url = `${baseUrl}/${key}.json`;
       await fetch(url, { method: "DELETE" });
       alert("削除しました！");
-      loadRecords(); // 勝率も自動更新
+      loadRecords();
     }
 
     // Firebaseから読み込み
@@ -213,7 +237,15 @@
       const entries = Object.entries(data);
       const sorted = entries.sort((a, b) => new Date(b[1].Date) - new Date(a[1].Date));
 
-      // 統計計算
+      /* 🔥 連勝カウンター計算 */
+      let streak = 0;
+      for (const [_, r] of sorted) {
+        if (r.Result === "勝ち") streak++;
+        else break;
+      }
+      document.getElementById("streakBox").innerText = `🔥 現在 ${streak} 連勝中`;
+
+      /* 統計計算 */
       const total = sorted.length;
       const wins = sorted.filter(([_, r]) => r.Result === "勝ち").length;
       const losses = sorted.filter(([_, r]) => r.Result === "負け").length;
@@ -224,7 +256,7 @@
       document.getElementById("losses").innerText = `負け：${losses}`;
       document.getElementById("rate").innerText = `勝率：${rate}%`;
 
-      // 表示
+      /* 対戦記録表示 */
       for (const [key, r] of sorted) {
         const div = document.createElement("div");
         div.className = "record";
