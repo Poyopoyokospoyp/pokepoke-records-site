@@ -39,6 +39,34 @@
       border: 1px solid #e0e0e0;
     }
 
+    /* 🔥 統計カードを配信向けに強調 */
+    .stats-box h2 {
+      font-size: 1.6em;
+      font-weight: bold;
+      color: #0077cc;
+      margin-bottom: 15px;
+    }
+
+    .stats-item {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .stats-item .label {
+      color: #555;
+    }
+
+    .stats-item .value {
+      margin-left: 10px;
+    }
+
+    .value.total { color: #333; }
+    .value.wins { color: #0077cc; }
+    .value.losses { color: #d32f2f; }
+    .value.rate { color: #0055aa; }
+
+    /* 連勝カウンター */
     .streak-box {
       text-align: center;
       font-size: 1.8em;
@@ -46,11 +74,13 @@
       color: #d32f2f;
     }
 
+    /* 編集モード */
     .form-box.editing {
       background: #fff7d1;
       border-left: 5px solid #ffcc00;
     }
 
+    /* 対戦記録カード */
     .record {
       background: #fafafa;
       padding: 15px;
@@ -113,7 +143,7 @@
 </head>
 <body>
 
-  <!-- 🔥 タイトルを白背景カードに変更 -->
+  <!-- 🔥 タイトル（白背景カード） -->
   <div class="title-main-box">
     <h1 id="mainTitle">対戦記録（リアルタイム）</h1>
   </div>
@@ -124,13 +154,29 @@
     <span id="ratePointDisplay">（レート: -）</span>
   </div>
 
-  <!-- 統計表示 -->
+  <!-- 🔥 統計カード（配信向け強調済み） -->
   <div class="stats-box">
     <h2>統計</h2>
-    <p id="total"></p>
-    <p id="wins"></p>
-    <p id="losses"></p>
-    <p id="rate"></p>
+
+    <div class="stats-item">
+      <span class="label">総試合数：</span>
+      <span class="value total" id="total"></span>
+    </div>
+
+    <div class="stats-item">
+      <span class="label">勝ち：</span>
+      <span class="value wins" id="wins"></span>
+    </div>
+
+    <div class="stats-item">
+      <span class="label">負け：</span>
+      <span class="value losses" id="losses"></span>
+    </div>
+
+    <div class="stats-item">
+      <span class="label">勝率：</span>
+      <span class="value rate" id="rate"></span>
+    </div>
   </div>
 
   <!-- 入力フォーム -->
@@ -230,8 +276,6 @@
         body: JSON.stringify(record)
       });
 
-      alert(editKey ? "編集を保存しました！" : "送信しました！");
-
       editKey = null;
       document.getElementById("formTitle").innerText = "対戦結果を追加する";
       document.getElementById("battleForm").reset();
@@ -259,7 +303,6 @@
     async function deleteRecord(key) {
       const url = `${baseUrl}/${key}.json`;
       await fetch(url, { method: "DELETE" });
-      alert("削除しました！");
       loadRecords();
     }
 
@@ -292,10 +335,10 @@
       const losses = sorted.filter(([_, r]) => r.Result === "負け").length;
       const rate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
 
-      document.getElementById("total").innerText = `総試合数：${total}`;
-      document.getElementById("wins").innerText = `勝ち：${wins}`;
-      document.getElementById("losses").innerText = `負け：${losses}`;
-      document.getElementById("rate").innerText = `勝率：${rate}%`;
+      document.getElementById("total").innerText = total;
+      document.getElementById("wins").innerText = wins;
+      document.getElementById("losses").innerText = losses;
+      document.getElementById("rate").innerText = `${rate}%`;
 
       /* 対戦記録表示 */
       for (const [key, r] of sorted) {
