@@ -19,7 +19,7 @@
       color: #0077cc;
     }
 
-    .stats-box, .form-box, .streak-box, .chart-box, .title-box {
+    .stats-box, .form-box, .streak-box, .title-box {
       background: #ffffff;
       padding: 20px;
       border-radius: 15px;
@@ -102,13 +102,21 @@
 </head>
 <body>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- 🔥 編集可能タイトル -->
   <h1 id="mainTitle">対戦記録（リアルタイム）</h1>
 
-  <!-- 🔥 連勝カウンター -->
-  <div class="streak-box" id="streakBox">🔥 現在 0 連勝中</div>
+  <!-- 🔥 連勝カウンター + レートポイント -->
+  <div class="streak-box" id="streakBox">
+    🔥 現在 0 連勝中　
+    <span id="ratePointDisplay">（レート: -）</span>
+  </div>
+
+  <!-- レートポイント入力欄 -->
+  <div class="title-box">
+    <h2>レートポイント入力</h2>
+    <label>レートポイント:</label>
+    <input type="number" id="ratePointInput" placeholder="例：1520">
+    <button onclick="updateRatePoint()">レートを更新</button>
+  </div>
 
   <!-- 統計表示 -->
   <div class="stats-box">
@@ -117,12 +125,6 @@
     <p id="wins"></p>
     <p id="losses"></p>
     <p id="rate"></p>
-  </div>
-
-  <!-- 📈 勝率グラフ -->
-  <div class="chart-box">
-    <h2>勝率推移グラフ</h2>
-    <canvas id="rateChart"></canvas>
   </div>
 
   <!-- 入力フォーム -->
@@ -159,7 +161,7 @@
   <!-- 対戦記録 -->
   <div id="records"></div>
 
-  <!-- 🔽 タイトル編集を一番下に移動 -->
+  <!-- タイトル編集（ページ最下部） -->
   <div class="title-box">
     <h2>タイトル編集</h2>
     <label>タイトルを変更する:</label>
@@ -170,8 +172,8 @@
   <script>
     const baseUrl = "https://pokepoke-records-default-rtdb.firebaseio.com/records";
     let editKey = null;
-    let chart = null;
 
+    /* タイトル変更 */
     function changeTitle() {
       const newTitle = document.getElementById("titleInput").value.trim();
       if (newTitle !== "") {
@@ -179,6 +181,14 @@
       }
     }
 
+    /* レートポイント更新 */
+    function updateRatePoint() {
+      const point = document.getElementById("ratePointInput").value.trim();
+      document.getElementById("ratePointDisplay").innerText =
+        point ? `（レート: ${point}）` : "（レート: -）";
+    }
+
+    /* 今日の日付を自動入力 */
     window.onload = function() {
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -187,6 +197,7 @@
       document.getElementById("date").value = `${yyyy}/${mm}/${dd}`;
     };
 
+    /* 新規 or 編集 保存 */
     async function saveRecord() {
       const record = {
         Date: document.getElementById("date").value,
@@ -214,6 +225,7 @@
       loadRecords();
     }
 
+    /* 編集ボタン */
     function editRecord(key, r) {
       editKey = key;
       document.getElementById("formTitle").innerText = "対戦結果を編集する";
@@ -227,6 +239,7 @@
       document.getElementById("formBox").classList.add("editing");
     }
 
+    /* 削除 */
     async function deleteRecord(key) {
       const url = `${baseUrl}/${key}.json`;
       await fetch(url, { method: "DELETE" });
@@ -234,6 +247,7 @@
       loadRecords();
     }
 
+    /* Firebaseから読み込み */
     async function loadRecords() {
       const res = await fetch(`${baseUrl}.json`);
       const data = await res.json();
@@ -246,13 +260,16 @@
       const entries = Object.entries(data);
       const sorted = entries.sort((a, b) => new Date(b[1].Date) - new Date(a[1].Date));
 
+      /* 🔥 連勝カウンター */
       let streak = 0;
       for (const [_, r] of sorted) {
         if (r.Result === "勝ち") streak++;
         else break;
       }
-      document.getElementById("streakBox").innerText = `🔥 現在 ${streak} 連勝中`;
+      document.getElementById("streakBox").innerHTML =
+        `🔥 現在 ${streak} 連勝中　<span id="ratePointDisplay">${document.getElementById("ratePointDisplay").innerText}</span>`;
 
+      /* 統計 */
       const total = sorted.length;
       const wins = sorted.filter(([_, r]) => r.Result === "勝ち").length;
       const losses = sorted.filter(([_, r]) => r.Result === "負け").length;
@@ -263,40 +280,7 @@
       document.getElementById("losses").innerText = `負け：${losses}`;
       document.getElementById("rate").innerText = `勝率：${rate}%`;
 
-      let winCount = 0;
-      let rateHistory = [];
-      let labels = [];
-
-      sorted.slice().reverse().forEach(([_, r], index) => {
-        if (r.Result === "勝ち") winCount++;
-        labels.push(index + 1);
-        rateHistory.push(((winCount / (index + 1)) * 100).toFixed(1));
-      });
-
-      const ctx = document.getElementById("rateChart").getContext("2d");
-
-      if (chart) chart.destroy();
-
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '勝率推移 (%)',
-            data: rateHistory,
-            borderColor: '#0077cc',
-            backgroundColor: 'rgba(0,119,204,0.2)',
-            borderWidth: 3,
-            tension: 0.3
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true, max: 100 }
-          }
-        }
-      });
-
+      /* 対戦記録表示 */
       for (const [key, r] of sorted) {
         const div = document.createElement("div");
         div.className = "record";
