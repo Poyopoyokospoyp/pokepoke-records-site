@@ -19,7 +19,7 @@
       color: #0077cc;
     }
 
-    .stats-box, .form-box, .streak-box, .title-box, .chart-box {
+    .stats-box, .form-box, .streak-box, .chart-box, .title-box {
       background: #ffffff;
       padding: 20px;
       border-radius: 15px;
@@ -104,16 +104,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- 🔥 編集可能タイトル -->
   <h1 id="mainTitle">対戦記録（リアルタイム）</h1>
 
-  <div class="title-box">
-    <label>タイトルを変更する:</label>
-    <input type="text" id="titleInput" placeholder="例：今日の対戦記録">
-    <button onclick="changeTitle()">タイトルを変更</button>
-  </div>
-
+  <!-- 🔥 連勝カウンター -->
   <div class="streak-box" id="streakBox">🔥 現在 0 連勝中</div>
 
+  <!-- 統計表示 -->
   <div class="stats-box">
     <h2>統計</h2>
     <p id="total"></p>
@@ -128,6 +125,7 @@
     <canvas id="rateChart"></canvas>
   </div>
 
+  <!-- 入力フォーム -->
   <div class="form-box" id="formBox">
     <h2 id="formTitle">対戦結果を追加する</h2>
     <form id="battleForm">
@@ -158,7 +156,16 @@
     </form>
   </div>
 
+  <!-- 対戦記録 -->
   <div id="records"></div>
+
+  <!-- 🔽 タイトル編集を一番下に移動 -->
+  <div class="title-box">
+    <h2>タイトル編集</h2>
+    <label>タイトルを変更する:</label>
+    <input type="text" id="titleInput" placeholder="例：今日の対戦記録">
+    <button onclick="changeTitle()">タイトルを変更</button>
+  </div>
 
   <script>
     const baseUrl = "https://pokepoke-records-default-rtdb.firebaseio.com/records";
@@ -256,7 +263,6 @@
       document.getElementById("losses").innerText = `負け：${losses}`;
       document.getElementById("rate").innerText = `勝率：${rate}%`;
 
-      /* 📈 勝率推移データ作成 */
       let winCount = 0;
       let rateHistory = [];
       let labels = [];
@@ -267,7 +273,6 @@
         rateHistory.push(((winCount / (index + 1)) * 100).toFixed(1));
       });
 
-      /* グラフ描画 */
       const ctx = document.getElementById("rateChart").getContext("2d");
 
       if (chart) chart.destroy();
@@ -292,7 +297,6 @@
         }
       });
 
-      /* 対戦記録表示 */
       for (const [key, r] of sorted) {
         const div = document.createElement("div");
         div.className = "record";
