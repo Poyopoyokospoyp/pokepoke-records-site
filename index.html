@@ -29,7 +29,7 @@
       border-left: 5px solid #F44336;
     }
 
-    .delete-btn {
+    .delete-btn, .edit-btn {
       position: absolute;
       top: 10px;
       right: 10px;
@@ -39,6 +39,15 @@
       border-radius: 5px;
       padding: 5px 8px;
       cursor: pointer;
+    }
+
+    .edit-btn {
+      right: 70px;
+      background: #2196F3;
+    }
+
+    .edit-btn:hover {
+      background: #1976D2;
     }
 
     .delete-btn:hover {
@@ -84,7 +93,7 @@
 
   <!-- 入力フォーム -->
   <div class="form-box">
-    <h2>対戦結果を追加する</h2>
+    <h2 id="formTitle">対戦結果を追加する</h2>
     <form id="battleForm">
       <label>日付:
         <input type="text" id="date">
@@ -109,14 +118,15 @@
         <input type="text" id="comment">
       </label>
 
-      <button type="button" onclick="sendRecord()">送信</button>
+      <button type="button" onclick="saveRecord()">送信</button>
     </form>
   </div>
 
   <div id="records"></div>
 
   <script>
-    const url = "https://pokepoke-records-default-rtdb.firebaseio.com/records.json";
+    const baseUrl = "https://pokepoke-records-default-rtdb.firebaseio.com/records";
+    let editKey = null;
 
     // ページ読み込み時に今日の日付を自動入力
     window.onload = function() {
@@ -127,8 +137,8 @@
       document.getElementById("date").value = `${yyyy}/${mm}/${dd}`;
     };
 
-    // Firebaseへ送信
-    async function sendRecord() {
+    // 新規 or 編集 保存
+    async function saveRecord() {
       const record = {
         Date: document.getElementById("date").value,
         Result: document.getElementById("result").value,
@@ -137,19 +147,47 @@
         Comment: document.getElementById("comment").value
       };
 
+      const url = editKey
+        ? `${baseUrl}/${editKey}.json`   // 編集
+        : `${baseUrl}.json`;             // 新規
+
       await fetch(url, {
-        method: "POST",
+        method: editKey ? "PUT" : "POST",
         body: JSON.stringify(record)
       });
 
-      alert("送信しました！");
+      alert(editKey ? "編集を保存しました！" : "送信しました！");
+
+      editKey = null;
+      document.getElementById("formTitle").innerText = "対戦結果を追加する";
       document.getElementById("battleForm").reset();
       window.onload();
+      loadRecords();
+    }
+
+    // 編集ボタン
+    function editRecord(key, r) {
+      editKey = key;
+      document.getElementById("formTitle").innerText = "対戦結果を編集する";
+
+      document.getElementById("date").value = r.Date;
+      document.getElementById("result").value = r.Result;
+      document.getElementById("opponentDeck").value = r.OpponentDeck;
+      document.getElementById("myDeck").value = r.MyDeck;
+      document.getElementById("comment").value = r.Comment;
+    }
+
+    // 削除
+    async function deleteRecord(key) {
+      const url = `${baseUrl}/${key}.json`;
+      await fetch(url, { method: "DELETE" });
+      alert("削除しました！");
+      loadRecords(); // 勝率も自動更新
     }
 
     // Firebaseから読み込み
     async function loadRecords() {
-      const res = await fetch(url);
+      const res = await fetch(`${baseUrl}.json`);
       const data = await res.json();
 
       const container = document.getElementById("records");
@@ -157,7 +195,6 @@
 
       if (!data) return;
 
-      // 新しい順に並べる
       const entries = Object.entries(data);
       const sorted = entries.sort((a, b) => new Date(b[1].Date) - new Date(a[1].Date));
 
@@ -172,7 +209,7 @@
       document.getElementById("losses").innerText = `負け：${losses}`;
       document.getElementById("rate").innerText = `勝率：${rate}%`;
 
-      // 対戦記録表示
+      // 表示
       for (const [key, r] of sorted) {
         const div = document.createElement("div");
         div.className = "record";
@@ -184,18 +221,11 @@
           対戦相手のデッキ: ${r.OpponentDeck}<br>
           自分のデッキ: ${r.MyDeck}<br>
           コメント: ${r.Comment}<br>
-          <button class="delete-btn" onclick="deleteRecord('${key}')">削除</button>
+          <button class="edit-btn" onclick='editRecord("${key}", ${JSON.stringify(r)})'>編集</button>
+          <button class="delete-btn" onclick='deleteRecord("${key}")'>削除</button>
         `;
         container.appendChild(div);
       }
-    }
-
-    // Firebaseから削除
-    async function deleteRecord(key) {
-      const deleteUrl = `https://pokepoke-records-default-rtdb.firebaseio.com/records/${key}.json`;
-      await fetch(deleteUrl, { method: "DELETE" });
-      alert("削除しました！");
-      loadRecords();
     }
 
     setInterval(loadRecords, 3000);
