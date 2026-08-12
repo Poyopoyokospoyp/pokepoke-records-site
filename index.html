@@ -170,9 +170,10 @@
       document.getElementById("battleForm").reset();
       window.onload();
 
-      // 編集モード解除（J）
+      // 編集モード解除
       document.getElementById("formBox").classList.remove("editing");
 
+      // 🔥 送信直後に最新データを即時反映
       loadRecords();
     }
 
@@ -187,7 +188,7 @@
       document.getElementById("myDeck").value = r.MyDeck;
       document.getElementById("comment").value = r.Comment;
 
-      // 編集モード背景色（J）
+      // 編集モード背景色
       document.getElementById("formBox").classList.add("editing");
     }
 
@@ -196,7 +197,7 @@
       const url = `${baseUrl}/${key}.json`;
       await fetch(url, { method: "DELETE" });
       alert("削除しました！");
-      loadRecords(); // 勝率も自動更新（I）
+      loadRecords(); // 勝率も自動更新
     }
 
     // Firebaseから読み込み
