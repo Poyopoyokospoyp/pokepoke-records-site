@@ -6,8 +6,8 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0f0f0f;
-      color: #fff;
+      background: #ffffff;
+      color: #333;
       padding: 20px;
     }
 
@@ -16,18 +16,17 @@
       text-align: center;
       font-size: 2.2em;
       font-weight: bold;
-      color: #00eaff;
-      text-shadow: 0 0 10px #00eaff;
+      color: #0077cc;
     }
 
     /* カード風ボックス */
     .stats-box, .form-box, .streak-box {
-      background: rgba(30, 30, 30, 0.9);
+      background: #ffffff;
       padding: 20px;
       border-radius: 15px;
       margin-bottom: 25px;
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-      border: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
     }
 
     /* 連勝カウンター */
@@ -35,46 +34,44 @@
       text-align: center;
       font-size: 1.8em;
       font-weight: bold;
-      color: #ff5252;
-      text-shadow: 0 0 10px #ff5252;
+      color: #d32f2f;
     }
 
     /* 編集モード */
     .form-box.editing {
-      background: rgba(255, 200, 0, 0.15);
+      background: #fff7d1;
       border-left: 5px solid #ffcc00;
     }
 
     /* 対戦記録カード */
     .record {
-      background: rgba(40, 40, 40, 0.9);
+      background: #fafafa;
       padding: 15px;
       margin-bottom: 15px;
       border-radius: 12px;
-      border-left: 6px solid #00eaff;
-      box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
+      border-left: 6px solid #0077cc;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
       position: relative;
     }
 
     .record.lose {
-      border-left: 6px solid #ff5252;
+      border-left: 6px solid #d32f2f;
     }
 
     /* ボタン */
     button {
       padding: 12px 18px;
-      background: #00eaff;
-      color: #000;
+      background: #0077cc;
+      color: #fff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
       font-size: 1em;
-      box-shadow: 0 0 10px #00eaff;
     }
 
     button:hover {
-      background: #00bcd4;
+      background: #005fa3;
     }
 
     /* 削除・編集ボタン */
@@ -95,7 +92,7 @@
     }
 
     .delete-btn {
-      background: #ff5252;
+      background: #d32f2f;
       color: #fff;
     }
 
