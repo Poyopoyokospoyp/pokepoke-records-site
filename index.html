@@ -8,7 +8,7 @@
 
     h1 { margin-bottom: 10px; }
 
-    .form-box {
+    .form-box, .stats-box {
       background: #ffffff;
       padding: 15px;
       border-radius: 10px;
@@ -22,10 +22,27 @@
       margin-bottom: 10px;
       border-radius: 8px;
       border-left: 5px solid #4CAF50;
+      position: relative;
     }
 
     .record.lose {
       border-left: 5px solid #F44336;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #F44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #d32f2f;
     }
 
     label { display: block; margin-bottom: 8px; }
@@ -50,14 +67,6 @@
     button:hover {
       background: #45a049;
     }
-
-    .stats-box {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
   </style>
 </head>
 <body>
@@ -77,13 +86,10 @@
   <div class="form-box">
     <h2>対戦結果を追加する</h2>
     <form id="battleForm">
-
-      <!-- 日付（自動入力） -->
       <label>日付:
         <input type="text" id="date">
       </label>
 
-      <!-- 結果（日付の下に移動） -->
       <label>結果:
         <select id="result">
           <option value="勝ち">勝ち</option>
@@ -91,12 +97,10 @@
         </select>
       </label>
 
-      <!-- 対戦相手のデッキ -->
       <label>対戦相手のデッキ:
         <input type="text" id="opponentDeck">
       </label>
 
-      <!-- 自分のデッキ -->
       <label>自分のデッキ:
         <input type="text" id="myDeck">
       </label>
@@ -139,11 +143,7 @@
       });
 
       alert("送信しました！");
-
-      // フォームをクリア
       document.getElementById("battleForm").reset();
-
-      // 日付を再自動入力
       window.onload();
     }
 
@@ -155,25 +155,25 @@
       const container = document.getElementById("records");
       container.innerHTML = "";
 
+      if (!data) return;
+
       // 新しい順に並べる
-      const sorted = Object.values(data).sort((a, b) => {
-        return new Date(b.Date) - new Date(a.Date);
-      });
+      const entries = Object.entries(data);
+      const sorted = entries.sort((a, b) => new Date(b[1].Date) - new Date(a[1].Date));
 
       // 統計計算
       const total = sorted.length;
-      const wins = sorted.filter(r => r.Result === "勝ち").length;
-      const losses = sorted.filter(r => r.Result === "負け").length;
+      const wins = sorted.filter(([_, r]) => r.Result === "勝ち").length;
+      const losses = sorted.filter(([_, r]) => r.Result === "負け").length;
       const rate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
 
-      // 統計表示
       document.getElementById("total").innerText = `総試合数：${total}`;
       document.getElementById("wins").innerText = `勝ち：${wins}`;
       document.getElementById("losses").innerText = `負け：${losses}`;
       document.getElementById("rate").innerText = `勝率：${rate}%`;
 
       // 対戦記録表示
-      for (const r of sorted) {
+      for (const [key, r] of sorted) {
         const div = document.createElement("div");
         div.className = "record";
         if (r.Result === "負け") div.classList.add("lose");
@@ -183,10 +183,19 @@
           結果: ${r.Result}<br>
           対戦相手のデッキ: ${r.OpponentDeck}<br>
           自分のデッキ: ${r.MyDeck}<br>
-          コメント: ${r.Comment}
+          コメント: ${r.Comment}<br>
+          <button class="delete-btn" onclick="deleteRecord('${key}')">削除</button>
         `;
         container.appendChild(div);
       }
+    }
+
+    // Firebaseから削除
+    async function deleteRecord(key) {
+      const deleteUrl = `https://pokepoke-records-default-rtdb.firebaseio.com/records/${key}.json`;
+      await fetch(deleteUrl, { method: "DELETE" });
+      alert("削除しました！");
+      loadRecords();
     }
 
     setInterval(loadRecords, 3000);
