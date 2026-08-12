@@ -14,6 +14,13 @@
       border-radius: 10px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background 0.3s, border-left 0.3s;
+    }
+
+    /* 編集モードの背景色（J） */
+    .form-box.editing {
+      background: #fff7d1;
+      border-left: 5px solid #ff9800;
     }
 
     .record {
@@ -92,7 +99,7 @@
   </div>
 
   <!-- 入力フォーム -->
-  <div class="form-box">
+  <div class="form-box" id="formBox">
     <h2 id="formTitle">対戦結果を追加する</h2>
     <form id="battleForm">
       <label>日付:
@@ -148,8 +155,8 @@
       };
 
       const url = editKey
-        ? `${baseUrl}/${editKey}.json`   // 編集
-        : `${baseUrl}.json`;             // 新規
+        ? `${baseUrl}/${editKey}.json`
+        : `${baseUrl}.json`;
 
       await fetch(url, {
         method: editKey ? "PUT" : "POST",
@@ -162,6 +169,10 @@
       document.getElementById("formTitle").innerText = "対戦結果を追加する";
       document.getElementById("battleForm").reset();
       window.onload();
+
+      // 編集モード解除（J）
+      document.getElementById("formBox").classList.remove("editing");
+
       loadRecords();
     }
 
@@ -175,6 +186,9 @@
       document.getElementById("opponentDeck").value = r.OpponentDeck;
       document.getElementById("myDeck").value = r.MyDeck;
       document.getElementById("comment").value = r.Comment;
+
+      // 編集モード背景色（J）
+      document.getElementById("formBox").classList.add("editing");
     }
 
     // 削除
@@ -182,7 +196,7 @@
       const url = `${baseUrl}/${key}.json`;
       await fetch(url, { method: "DELETE" });
       alert("削除しました！");
-      loadRecords(); // 勝率も自動更新
+      loadRecords(); // 勝率も自動更新（I）
     }
 
     // Firebaseから読み込み
