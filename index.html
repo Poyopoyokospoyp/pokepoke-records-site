@@ -11,9 +11,19 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 20px;
+    /* タイトルも白背景カードに統一 */
+    .title-main-box {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
       text-align: center;
+    }
+
+    .title-main-box h1 {
+      margin: 0;
       font-size: 2.2em;
       font-weight: bold;
       color: #0077cc;
@@ -103,7 +113,10 @@
 </head>
 <body>
 
-  <h1 id="mainTitle">対戦記録（リアルタイム）</h1>
+  <!-- 🔥 タイトルを白背景カードに変更 -->
+  <div class="title-main-box">
+    <h1 id="mainTitle">対戦記録（リアルタイム）</h1>
+  </div>
 
   <!-- 🔥 連勝カウンター + レートポイント -->
   <div class="streak-box" id="streakBox">
@@ -164,7 +177,7 @@
   <!-- 対戦記録 -->
   <div id="records"></div>
 
-  <!-- 🔽 タイトル編集（白背景に統一） -->
+  <!-- タイトル編集（ページ最下部） -->
   <div class="title-box">
     <h2>タイトル編集</h2>
     <label>タイトルを変更する:</label>
